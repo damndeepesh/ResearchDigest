@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Research Paper Digest</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00d4ff, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #b0b0b0;
+            margin-bottom: 20px;
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-input {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .search-input input:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .search-input input::placeholder {
+            color: #888;
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        .chat-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            height: 400px;  /* Reduced from 500px */
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-header {
+            padding: 15px 20px;  /* Reduced from 20px */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px 15px 0 0;
+        }
+
+        .chat-header h3 {
+            color: #00d4ff;
+            font-size: 1.1rem;  /* Reduced from 1.3rem */
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;  /* Reduced from 20px */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;  /* Reduced from 15px */
+        }
+
+        .message {
+            padding: 12px 16px;  /* Reduced from 15px 20px */
+            border-radius: 12px;  /* Reduced from 15px */
+            max-width: 85%;  /* Increased from 80% for better space usage */
+            word-wrap: break-word;
+            animation: fadeInUp 0.3s ease;
+            font-size: 0.9rem;  /* Added smaller font size */
+            line-height: 1.4;  /* Added tighter line height */
+        }
+
+        .message.user {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .message.bot {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .message.error {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .message.success {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .papers-list {
+            display: grid;
+            gap: 12px;  /* Reduced from 15px */
+            margin-top: 12px;  /* Reduced from 15px */
+        }
+
+        .paper-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;  /* Reduced from 10px */
+            padding: 16px;  /* Reduced from 20px */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .paper-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .paper-item:hover::before {
+            left: 100%;
+        }
+
+        .paper-item:hover {
+            transform: translateY(-2px);
+            border-color: #00d4ff;
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.2);
+        }
+
+        .paper-item.selected {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .paper-item.summarized {
+            background: rgba(78, 205, 196, 0.1);
+            border-color: #4ecdc4;
+            cursor: default;
+            opacity: 0.8;
+        }
+
+        .paper-item.summarized:hover {
+            transform: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.2);
+        }
+
+        .summary-status {
+            background: rgba(78, 205, 196, 0.2);
+            color: #4ecdc4;
+            padding: 4px 8px;  /* Reduced from 5px 10px */
+            border-radius: 12px;  /* Reduced from 15px */
+            font-size: 0.75rem;  /* Reduced from 0.8rem */
+            font-weight: 600;
+            text-align: center;
+            margin-top: 8px;  /* Reduced from 10px */
+            border: 1px solid rgba(78, 205, 196, 0.3);
+        }
+
+        .paper-title {
+            font-size: 1rem;  /* Reduced from 1.1rem */
+            font-weight: 600;
+            margin-bottom: 8px;  /* Reduced from 10px */
+            color: #ffffff;
+        }
+
+        .paper-authors {
+            color: #b0b0b0;
+            font-size: 0.8rem;  /* Reduced from 0.9rem */
+            margin-bottom: 8px;  /* Reduced from 10px */
+        }
+
+        .paper-abstract {
+            color: #d0d0d0;
+            font-size: 0.8rem;  /* Reduced from 0.9rem */
+            line-height: 1.3;  /* Reduced from 1.4 */
+            margin-bottom: 8px;  /* Reduced from 10px */
+        }
+
+        .paper-date {
+            color: #888;
+            font-size: 0.75rem;  /* Reduced from 0.8rem */
+            text-align: right;
+        }
+
+        .paper-summary {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;  /* Reduced from 10px */
+            padding: 16px;  /* Reduced from 20px */
+            margin-top: 12px;  /* Reduced from 15px */
+        }
+
+        .summary-title {
+            color: #00d4ff;
+            font-size: 1.1rem;  /* Reduced from 1.2rem */
+            margin-bottom: 12px;  /* Reduced from 15px */
+            font-weight: 600;
+        }
+
+        .summary-content {
+            color: #ffffff;
+            line-height: 1.5;  /* Reduced from 1.6 */
+            margin-bottom: 12px;  /* Reduced from 15px */
+            font-size: 0.9rem;  /* Added smaller font size */
+        }
+
+        .summary-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #b0b0b0;
+            font-size: 0.8rem;  /* Reduced from 0.9rem */
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00d4ff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .status-bar {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;  /* Reduced from 15px 20px */
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0 0 15px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-text {
+            color: #b0b0b0;
+            font-size: 0.8rem;  /* Reduced from 0.9rem */
+        }
+
+        .recent-papers {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .recent-papers h3 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .recent-paper-item {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .recent-paper-title {
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .recent-paper-summary {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .suggestion-chip {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            color: #b0b0b0;
+        }
+
+        .suggestion-chip:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            color: #ffffff;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;  /* Reduced from 2rem */
+            }
+            
+            .search-input {
+                flex-direction: column;
+            }
+            
+            .chat-container {
+                height: 350px;  /* Reduced from 400px for mobile */
+            }
+            
+            .message {
+                font-size: 0.85rem;  /* Even smaller for mobile */
+                padding: 10px 14px;  /* Smaller padding for mobile */
+            }
+            
+            .paper-item {
+                padding: 12px;  /* Smaller padding for mobile */
+            }
+            
+            .paper-title {
+                font-size: 0.95rem;  /* Smaller for mobile */
+            }
+            
+            .paper-abstract {
+                font-size: 0.75rem;  /* Smaller for mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 AI Research Paper Digest</h1>
+            <p>Discover, explore, and understand the latest research papers with AI-powered detailed summarization</p>
+            <div style="margin-top: 15px; padding: 10px; background: rgba(0, 212, 255, 0.1); border-radius: 8px; border: 1px solid rgba(0, 212, 255, 0.3);">
+                <small style="color: #00d4ff;">✨ <strong>Enhanced Features:</strong> Improved search relevance + Better summary quality with enhanced AI models!</small>
+            </div>
+            <div style="margin-top: 10px; padding: 8px; background: rgba(78, 205, 196, 0.1); border-radius: 6px; border: 1px solid rgba(78, 205, 196, 0.3);">
+                <small style="color: #4ecdc4;">💡 <strong>Enhanced:</strong> Now processing full papers for comprehensive summaries! 📄</small>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-input">
+                <input type="text" id="searchInput" placeholder="Ask for research papers (e.g., 'show me the latest research paper on Large Language Models')" />
+                <button class="search-btn" onclick="searchPapers()">🔍 Search</button>
+            </div>
+            
+            <div class="suggestions">
+                <div class="suggestion-chip" onclick="searchWithSuggestion('Large Language Models')">Large Language Models</div>
+                <div class="suggestion-chip" onclick="searchWithSuggestion('Computer Vision')">Computer Vision</div>
+                <div class="suggestion-chip" onclick="searchWithSuggestion('Machine Learning')">Machine Learning</div>
+                <div class="suggestion-chip" onclick="searchWithSuggestion('Natural Language Processing')">NLP</div>
+                <div class="suggestion-chip" onclick="searchWithSuggestion('Deep Learning')">Deep Learning</div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h3>💬 Research Assistant Chat</h3>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    👋 Hello! I'm your AI Research Assistant. Ask me to find the latest research papers on any topic, and I'll help you discover and summarize them.
+                </div>
+            </div>
+            
+            <div class="status-bar" id="statusBar">
+                <div class="status-text">Ready to help you discover research papers!</div>
+            </div>
+        </div>
+
+        <div class="recent-papers" id="recentPapers" style="display: none;">
+            <h3>📚 Recently Summarized Papers</h3>
+            <div id="recentPapersList"></div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentPapers = [];
+        let selectedPaperIndex = -1;
+        let summarizedPapers = new Set(); // Track which papers have been summarized
+
+        // Socket event handlers
+        socket.on('connect', function() {
+            updateStatus('Connected to Research Digest');
+            loadRecentPapers();
+        });
+
+        socket.on('disconnect', function() {
+            updateStatus('Disconnected from server');
+        });
+
+        socket.on('status', function(data) {
+            updateStatus(data.message);
+        });
+
+        socket.on('papers_found', function(data) {
+            try {
+                if (!data || !data.papers || !Array.isArray(data.papers)) {
+                    addMessage('Invalid papers data received from server', 'error');
+                    return;
+                }
+                
+                currentPapers = data.papers;
+                // Reset summarized papers for new search
+                summarizedPapers.clear();
+                
+                // Add papers that already have summaries to the set
+                data.papers.forEach(paper => {
+                    if (paper.has_summary && paper.arxiv_id) {
+                        summarizedPapers.add(paper.arxiv_id);
+                    }
+                });
+                
+                displayPapers(data.papers, data.query || 'Unknown query');
+            } catch (error) {
+                console.error('Error handling papers_found:', error);
+                addMessage('Error processing papers data', 'error');
+            }
+        });
+
+        socket.on('paper_summary', function(data) {
+            try {
+                if (!data || !data.summary) {
+                    addMessage('Invalid summary data received from server', 'error');
+                    return;
+                }
+                
+                // Mark this paper as summarized
+                if (data.arxiv_id) {
+                    summarizedPapers.add(data.arxiv_id);
+                }
+                
+                displayPaperSummary(data);
+                
+                // Update the UI to show this paper has been summarized
+                updatePaperSummarizedState(data.arxiv_id, true);
+                
+            } catch (error) {
+                console.error('Error handling paper_summary:', error);
+                addMessage('Error processing summary data', 'error');
+            }
+        });
+
+        socket.on('error', function(data) {
+            addMessage(data.message, 'error');
+            updateStatus('Error occurred');
+        });
+
+        socket.on('recent_papers', function(data) {
+            displayRecentPapers(data.papers);
+        });
+
+        function searchPapers() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                addMessage('Please enter a search query', 'error');
+                return;
+            }
+
+            addMessage(query, 'user');
+            updateStatus('Searching for papers...');
+            
+            socket.emit('search_papers', { query: query });
+            document.getElementById('searchInput').value = '';
+        }
+
+        function searchWithSuggestion(suggestion) {
+            document.getElementById('searchInput').value = suggestion;
+            searchPapers();
+        }
+
+        function displayPapers(papers, query) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Validate papers data
+            if (!papers || papers.length === 0) {
+                addMessage('No papers found or papers data is invalid', 'error');
+                return;
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.innerHTML = `
+                <div>🔍 Found ${papers.length} research papers on "${query}":</div>
+                <div class="papers-list">
+                    ${papers.map((paper, index) => {
+                        // Ensure all required fields are present
+                        const title = paper.title || 'Title not available';
+                        const authors = Array.isArray(paper.authors) ? paper.authors : [paper.authors || 'Unknown Author'];
+                        const abstract = paper.abstract || 'Abstract not available';
+                        const date = paper.published_date || 'Date not available';
+                        const arxivId = paper.arxiv_id || `paper_${index}`;
+                        
+                        // Check if this paper has already been summarized
+                        const isSummarized = summarizedPapers.has(arxivId);
+                        const clickClass = isSummarized ? 'paper-item summarized' : 'paper-item';
+                        const clickHandler = isSummarized ? '' : `onclick="selectPaper(${index})"`;
+                        const statusIndicator = isSummarized ? '<div class="summary-status">✓ Already Summarized</div>' : '';
+                        
+                        return `
+                            <div class="${clickClass}" ${clickHandler}>
+                                <div class="paper-title">${title}</div>
+                                <div class="paper-authors">By: ${authors.join(', ')}</div>
+                                <div class="paper-abstract">${abstract}</div>
+                                <div class="paper-date">Published: ${date}</div>
+                                ${statusIndicator}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div style="margin-top: 15px; color: #00d4ff;">
+                    💡 Click on any paper above to get a detailed summary!<br>
+                    <small style="color: #b0b0b0;">Papers with ✓ are already summarized and won't regenerate.</small>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function selectPaper(index) {
+            // Validate index
+            if (index < 0 || index >= currentPapers.length) {
+                addMessage('Invalid paper selection', 'error');
+                return;
+            }
+            
+            const selectedPaper = currentPapers[index];
+            
+            // Validate paper data
+            if (!selectedPaper || !selectedPaper.title || selectedPaper.title === 'Title not available') {
+                addMessage('Cannot summarize paper: Missing or invalid title', 'error');
+                return;
+            }
+            
+            if (!selectedPaper.abstract || selectedPaper.abstract === 'Abstract not available') {
+                addMessage('Cannot summarize paper: Missing or invalid abstract', 'error');
+                return;
+            }
+            
+            // Check if paper has already been summarized
+            if (summarizedPapers.has(selectedPaper.arxiv_id)) {
+                // Paper already has a summary, request it from the server
+                updateStatus('Retrieving existing summary...');
+                socket.emit('summarize_paper', { paper_index: index });
+                return;
+            }
+            
+            // Remove previous selection
+            const allPapers = document.querySelectorAll('.paper-item');
+            allPapers.forEach(paper => paper.classList.remove('selected'));
+            
+            // Select current paper
+            allPapers[index].classList.add('selected');
+            selectedPaperIndex = index;
+            
+            // Request summary
+            updateStatus('Generating summary...');
+            socket.emit('summarize_paper', { paper_index: index });
+        }
+
+        function updatePaperSummarizedState(arxivId, isSummarized) {
+            // Find the paper item in the current display and update its state
+            const paperItems = document.querySelectorAll('.paper-item');
+            paperItems.forEach((item, index) => {
+                if (currentPapers[index] && currentPapers[index].arxiv_id === arxivId) {
+                    if (isSummarized) {
+                        item.classList.add('summarized');
+                        item.onclick = null; // Remove click handler
+                        
+                        // Add status indicator if not already present
+                        if (!item.querySelector('.summary-status')) {
+                            const statusDiv = document.createElement('div');
+                            statusDiv.className = 'summary-status';
+                            statusDiv.textContent = '✓ Already Summarized';
+                            item.appendChild(statusDiv);
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayPaperSummary(data) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            
+            const summaryType = data.already_summarized ? '📖 Existing Summary' : '📄 New Summary';
+            const summaryNote = data.already_summarized ? 
+                '<div style="color: #4ecdc4; margin-bottom: 10px;"><small>✓ This summary was generated previously</small></div>' : 
+                '<div style="color: #00d4ff; margin-bottom: 10px;"><small>🆕 New summary generated</small></div>';
+            
+            // Calculate summary statistics
+            const summaryWords = data.summary.split(' ').length;
+            const abstractWords = data.full_abstract.split(' ').length;
+            const compressionRatio = ((summaryWords / abstractWords) * 100).toFixed(1);
+            
+            // Add source information if available
+            const sourceInfo = data.summary_source ? 
+                `<div style="color: #4ecdc4; margin-bottom: 10px;"><small>📄 Summary source: ${data.summary_source === 'full_paper' ? 'Full paper text' : 'Abstract only'}</small></div>` : '';
+            
+            const textLengthInfo = data.text_length ? 
+                `<div style="color: #b0b0b0;">• Full paper length: <strong>${data.text_length.toLocaleString()} characters</strong></div>` : '';
+            
+            messageDiv.innerHTML = `
+                <div class="paper-summary">
+                    <div class="summary-title">${summaryType}: ${data.title}</div>
+                    <div style="color: #b0b0b0; margin-bottom: 15px;">By: ${data.authors.join(', ')}</div>
+                    ${summaryNote}
+                    ${sourceInfo}
+                    <div class="summary-content">
+                        <strong>Summary:</strong><br>
+                        ${data.summary}
+                    </div>
+                    <div class="summary-stats" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 0.9rem;">
+                        <div style="color: #00d4ff; margin-bottom: 5px;"><strong>📊 Summary Statistics:</strong></div>
+                        <div style="color: #b0b0b0;">• Summary length: <strong>${summaryWords} words</strong></div>
+                        <div style="color: #b0b0b0;">• Abstract length: <strong>${abstractWords} words</strong></div>
+                        ${textLengthInfo}
+                        <div style="color: #b0b0b0;">• Compression ratio: <strong>${compressionRatio}%</strong></div>
+                        <div style="color: #4ecdc4; margin-top: 5px;"><small>💡 ${data.summary_source === 'full_paper' ? 'Full paper summaries provide comprehensive insights!' : 'Abstract summaries provide key insights!'}</small></div>
+                    </div>
+                    <div class="summary-meta">
+                        <span>arXiv ID: ${data.arxiv_id}</span>
+                        <span>📖 <a href="https://arxiv.org/abs/${data.arxiv_id}" target="_blank" style="color: #00d4ff;">View Full Paper</a></span>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            updateStatus('Summary generated successfully!');
+        }
+
+        function addMessage(text, type = 'bot') {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function updateStatus(text) {
+            const statusBar = document.getElementById('statusBar');
+            statusBar.innerHTML = `
+                <div class="status-text">${text}</div>
+                ${text.includes('Searching') || text.includes('Generating') ? '<div class="loading"></div>' : ''}
+            `;
+        }
+
+        function loadRecentPapers() {
+            socket.emit('get_recent_papers');
+        }
+
+        function displayRecentPapers(papers) {
+            if (papers.length === 0) return;
+            
+            const recentPapersDiv = document.getElementById('recentPapers');
+            const recentPapersList = document.getElementById('recentPapersList');
+            
+            recentPapersList.innerHTML = papers.map(paper => `
+                <div class="recent-paper-item">
+                    <div class="recent-paper-title">${paper.title}</div>
+                    <div class="recent-paper-summary">${paper.summary.substring(0, 200)}...</div>
+                </div>
+            `).join('');
+            
+            recentPapersDiv.style.display = 'block';
+        }
+
+        // Enter key support for search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPapers();
+            }
+        });
+
+        // Auto-focus search input
+        document.getElementById('searchInput').focus();
+    </script>
+</body>
+</html>
