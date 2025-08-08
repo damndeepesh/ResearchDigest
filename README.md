@@ -1,173 +1,61 @@
-# 🔬 AI Research Paper Digest
+# 🔬 Research Digest
+
+> **AI-Powered Research Paper Discovery & Summarization System**
+
+[![Docker Image](https://img.shields.io/badge/Docker%20Image-Available-blue?style=for-the-badge&logo=docker)](https://hub.docker.com/repository/docker/damndeepesh/research-digest/general)
+[![License](https://img.shields.io/badge/License-GPL%203.0-green.svg?style=for-the-badge)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg?style=for-the-badge&logo=python)](https://python.org)
 
 An intelligent research paper discovery and summarization system that automatically fetches the latest research papers from arXiv and provides AI-powered summaries through an interactive chat interface.
 
 ## ✨ Features
 
-- **🔍 Smart Paper Discovery**: Search for research papers using natural language queries
-- **📄 Full Paper Processing**: Downloads and processes entire PDFs for comprehensive summaries
-- **🤖 AI-Powered Summarization**: Uses HuggingFace transformers (BART/T5) for intelligent paper summarization
-- **📊 Enhanced Summaries**: Section-by-section analysis with chunking for long documents
-- **💬 Interactive Chat Interface**: Chat-based UI for seamless paper exploration
-- **📱 Modern Dark Theme**: Beautiful, responsive design with dark aesthetics
-- **💾 Intelligent Caching**: Stores summaries in SQLite database to avoid re-processing
-- **📊 Real-time Updates**: WebSocket-based real-time communication
-- **🐳 Docker Ready**: Easy deployment with Docker and Docker Compose
-
-## 🚀 Recent Improvements
-
-### 🎯 Issues Addressed
-
-#### 1. **Paper Relevance Problem** ✅ FIXED
-**Issue**: Papers showing were not getting related to topic searches.
-
-**Solution Implemented**:
-- **Enhanced Search Algorithm**: Improved query processing by removing stop words and adding category-specific terms
-- **Relevance Scoring**: Added intelligent relevance scoring based on title and abstract content overlap
-- **Better Filtering**: Papers are now sorted by relevance score before being returned
-- **Category Mapping**: Automatic detection and mapping of research areas to arXiv categories (cs.AI, cs.CV, cs.CL, cs.LG)
-
-**Code Changes**:
-- `research_fetcher.py`: Added `_improve_search_query()` and `_calculate_relevance_score()` methods
-- Changed search sorting from date-based to relevance-based
-- Increased initial result fetch to allow better filtering
-
-#### 2. **Summary Quality Problem** ✅ IMPROVED
-**Issue**: System was giving abstract of paper as summary instead of going through the whole paper.
-
-**Solution Implemented**:
-- **Enhanced AI Models**: Upgraded summarization parameters for better quality output
-- **Improved Preprocessing**: Better text cleaning and intelligent truncation (keeps important beginning/end sections)
-- **Summary Enhancement**: Post-processing to add context and key terms when summaries are too generic
-- **Better Model Parameters**: Added temperature, top-p sampling, and repetition penalty for more natural summaries
-
-**Code Changes**:
-- `paper_summarizer.py`: Enhanced model loading with better parameters
-- Added `_enhance_summary()` and `_extract_key_terms()` methods
-- Improved text preprocessing with intelligent truncation
-- Increased summary length limits (400 chars max, 150 chars min)
-
-**Note**: Currently still summarizing abstracts, but quality is significantly improved. Full paper access requires additional API integration.
-
-#### 3. **Chat Window Font Size** ✅ FIXED
-**Issue**: Chat window font was taking too much space.
-
-**Solution Implemented**:
-- **Reduced Font Sizes**: Decreased font sizes across all chat elements
-- **Compact Layout**: Reduced padding, margins, and spacing throughout the interface
-- **Mobile Optimization**: Added responsive design improvements for smaller screens
-- **Better Space Usage**: Increased message width from 80% to 85% for better content display
-
-**Code Changes**:
-- `templates/index.html`: Reduced font sizes, padding, and margins
-- Chat container height reduced from 500px to 400px (350px on mobile)
-- Added responsive font sizing for mobile devices
-- Optimized spacing between elements
-
-### 🚀 Technical Improvements Made
-
-#### Search & Relevance
-- Query preprocessing with stop word removal
-- Automatic category detection (AI, CV, NLP, ML)
-- Relevance scoring algorithm (70% title weight, 30% abstract weight)
-- Result filtering and ranking by relevance
-
-#### Summarization Quality
-- Enhanced BART model parameters
-- Intelligent text preprocessing
-- Summary post-processing and enhancement
-- Key term extraction and context addition
-- Better handling of long texts
-
-#### User Interface
-- Compact chat design
-- Responsive mobile layout
-- Smaller, more readable fonts
-- Better space utilization
-- Improved visual hierarchy
-
-### 📊 Performance Improvements
-
-- **Search Relevance**: Papers now ranked by actual relevance to query
-- **Summary Quality**: 33% longer summaries (400 vs 300 chars) with better content
-- **Interface Efficiency**: 20% reduction in chat container height
-- **Mobile Experience**: Optimized for smaller screens
-
-### 🔮 Future Enhancements
-
-To address the remaining limitation of only summarizing abstracts:
-
-1. **PDF Content Extraction**: Integrate with arXiv PDF APIs to extract full paper content
-2. **Section-based Summarization**: Summarize individual sections (Introduction, Methods, Results, Conclusion)
-3. **Multi-modal Summarization**: Combine text and figure analysis
-4. **Citation Analysis**: Extract and summarize related work and references
-
-### 🧪 Testing
-
-All improvements have been tested and verified:
-- ✅ Search query improvement
-- ✅ Relevance scoring
-- ✅ Text preprocessing
-- ✅ Summary enhancement
-- ✅ Key term extraction
-
-### 📁 Files Modified
-
-1. `research_fetcher.py` - Enhanced search and relevance
-2. `paper_summarizer.py` - Improved summarization quality
-3. `templates/index.html` - Compact chat interface
-
-### 🎉 Results
-
-The Research Digest system now provides:
-- **Better Paper Relevance**: Papers are properly filtered and ranked by relevance
-- **Higher Quality Summaries**: Enhanced AI models with better parameters and post-processing
-- **Compact Interface**: Smaller fonts and better space utilization
-- **Improved User Experience**: More intuitive and efficient research paper discovery
-
-The system is ready for production use with significantly improved functionality!
+- **🔍 Smart Paper Discovery** - Natural language search with intelligent relevance scoring
+- **🤖 AI-Powered Summarization** - Advanced BART/T5 models for high-quality summaries
+- **💬 Interactive Chat Interface** - Seamless paper exploration with real-time updates
+- **📱 Modern Dark Theme** - Beautiful, responsive design optimized for all devices
+- **💾 Intelligent Caching** - SQLite database for efficient summary storage
+- **📊 Real-time Communication** - WebSocket-based instant updates
+- **🐳 Docker Ready** - Pre-built Docker image available on Docker Hub
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Option 1: Docker (Recommended)
 
-- Python 3.8+
-- Docker (optional, for containerized deployment)
-- Internet connection for arXiv API access
+```bash
+# Pull the pre-built image
+docker pull damndeepesh/research-digest:latest
 
-### Local Development
+# Run the container
+docker run -p 5000:5000 damndeepesh/research-digest:latest
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd ResearchDigest
-   ```
+**Docker Hub**: [damndeepesh/research-digest](https://hub.docker.com/repository/docker/damndeepesh/research-digest/general)
 
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Option 2: Docker Compose
 
-3. **Run the application**
-   ```bash
-   python app.py
-   ```
+```bash
+# Clone and run
+git clone https://github.com/damndeepesh/ResearchDigest.git
+cd ResearchDigest
+docker-compose up --build
+```
 
-4. **Open your browser**
-   Navigate to `http://localhost:5000`
+### Option 3: Local Development
 
-### Docker Deployment
+```bash
+# Clone the repository
+git clone https://github.com/damndeepesh/ResearchDigest.git
+cd ResearchDigest
 
-1. **Build and run with Docker Compose**
-   ```bash
-   docker-compose up --build
-   ```
+# Install dependencies
+pip install -r requirements.txt
 
-2. **Or build and run manually**
-   ```bash
-   docker build -t research-digest .
-   docker run -p 5000:5000 research-digest
-   ```
+# Run the application
+python app.py
+```
+
+**Open your browser**: Navigate to `http://localhost:5000`
 
 ## 🏗️ Architecture
 
@@ -184,63 +72,53 @@ The system is ready for production use with significantly improved functionality
 │   Database      │    │   Transformers   │    │   & Text        │
 │   (Cache)       │    │   (BART/T5)      │    │   Extraction    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Summary       │    │   Section        │    │   PyPDF2        │
-│   Storage       │    │   Analysis       │    │   & Chunking     │
-│   & Metadata    │    │   & Processing   │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
-- `FLASK_ENV`: Set to `production` for production deployment
-- `FLASK_APP`: Main application file (default: `app.py`)
-- `PYTHONUNBUFFERED`: Set to `1` for Docker logging
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `FLASK_ENV` | Environment mode | `development` |
+| `FLASK_APP` | Main application file | `app.py` |
+| `PYTHONUNBUFFERED` | Python output buffering | `1` (Docker) |
 
 ### Model Configuration
 
-The system uses HuggingFace transformers for summarization:
+The system uses state-of-the-art HuggingFace transformers:
 
-- **Primary Model**: `facebook/bart-large-cnn` (recommended)
-- **Fallback Model**: `t5-small` (lighter alternative)
+- **Primary**: `facebook/bart-large-cnn` (high quality)
+- **Fallback**: `t5-small` (lightweight)
 
-You can modify the model in `paper_summarizer.py`:
-
+Customize in `paper_summarizer.py`:
 ```python
-paper_summarizer = PaperSummarizer(model_name="your-preferred-model")
+paper_summarizer = PaperSummarizer(model_name="your-model")
 ```
 
 ## 📱 Usage
 
 ### 1. Search for Papers
-
-Type natural language queries like:
-- "Show me the latest research paper on Large Language Models"
+Use natural language queries:
+- "Show me the latest research on Large Language Models"
 - "Find papers about computer vision"
 - "Research on machine learning algorithms"
 
 ### 2. Browse Results
-
-The system will display up to 5 relevant papers with:
+View up to 5 relevant papers with:
 - Title and authors
 - Abstract preview
 - Publication date
 - arXiv ID
 
-### 3. Get Summaries
-
-Click on any paper to generate an AI-powered summary that:
-- Condenses the abstract into key points
-- Maintains technical accuracy
-- Provides insights into methodology and findings
+### 3. Get AI Summaries
+Click any paper for intelligent summaries that:
+- Condense key points
+- Maintain technical accuracy
+- Provide methodology insights
 
 ### 4. Access Full Papers
-
-Each summary includes a link to the full paper on arXiv.
+Each summary includes direct arXiv links.
 
 ## 🗄️ Database Schema
 
@@ -263,20 +141,44 @@ CREATE TABLE papers (
 ## 🔍 API Endpoints
 
 ### WebSocket Events
-
-- `search_papers`: Search for research papers
-- `summarize_paper`: Generate summary for selected paper
-- `get_recent_papers`: Retrieve recently summarized papers
+- `search_papers` - Search for research papers
+- `summarize_paper` - Generate summary for selected paper
+- `get_recent_papers` - Retrieve recently summarized papers
 
 ### HTTP Routes
-
-- `GET /`: Main application interface
+- `GET /` - Main application interface
 - WebSocket connection for real-time communication
+
+## 🚀 Recent Improvements
+
+### 🎯 Issues Addressed
+
+#### 1. **Paper Relevance Problem** ✅ FIXED
+- **Enhanced Search Algorithm**: Improved query processing with stop word removal
+- **Relevance Scoring**: Intelligent scoring based on title/abstract overlap
+- **Better Filtering**: Papers sorted by relevance score
+- **Category Mapping**: Automatic detection of research areas (AI, CV, NLP, ML)
+
+#### 2. **Summary Quality Problem** ✅ IMPROVED
+- **Enhanced AI Models**: Upgraded summarization parameters
+- **Improved Preprocessing**: Better text cleaning and intelligent truncation
+- **Summary Enhancement**: Post-processing with context and key terms
+- **Better Model Parameters**: Temperature, top-p sampling, repetition penalty
+
+#### 3. **Chat Window Font Size** ✅ FIXED
+- **Reduced Font Sizes**: Compact design across all elements
+- **Mobile Optimization**: Responsive design for smaller screens
+- **Better Space Usage**: Increased message width and optimized spacing
+
+### 📊 Performance Improvements
+- **Search Relevance**: Papers ranked by actual relevance
+- **Summary Quality**: 33% longer summaries (400 vs 300 chars)
+- **Interface Efficiency**: 20% reduction in chat container height
+- **Mobile Experience**: Optimized for all screen sizes
 
 ## 🛠️ Development
 
 ### Project Structure
-
 ```
 ResearchDigest/
 ├── app.py                 # Main Flask application
@@ -291,65 +193,42 @@ ResearchDigest/
 ```
 
 ### Adding New Features
-
 1. **New Data Sources**: Extend `ResearchFetcher` class
 2. **Alternative Models**: Modify `PaperSummarizer` class
 3. **UI Enhancements**: Update `templates/index.html`
-4. **Database Changes**: Modify database schema in `app.py`
+4. **Database Changes**: Modify schema in `app.py`
 
 ## 🚀 Deployment
 
 ### Production Considerations
+- Set `FLASK_ENV=production`
+- Consider PostgreSQL for production database
+- Implement Redis for session storage
+- Use Nginx as reverse proxy
+- Add health checks and monitoring
 
-1. **Environment**: Set `FLASK_ENV=production`
-2. **Database**: Consider PostgreSQL for production use
-3. **Caching**: Implement Redis for session storage
-4. **Load Balancing**: Use Nginx as reverse proxy
-5. **Monitoring**: Add health checks and logging
-
-### Scaling
-
-- **Horizontal**: Run multiple Flask instances behind a load balancer
+### Scaling Options
+- **Horizontal**: Multiple Flask instances behind load balancer
 - **Vertical**: Increase resources for larger models
-- **Caching**: Implement Redis for paper and summary caching
+- **Caching**: Redis for paper and summary caching
 
 ## 🔒 Security
-
 - Input validation for search queries
 - Rate limiting for API calls
 - Secure WebSocket connections
 - Database query parameterization
 
-## 📊 Performance
-
-- **Caching**: Summaries stored in database
-- **Async Processing**: WebSocket-based communication
-- **Model Optimization**: Fallback to lighter models
-- **Connection Pooling**: Efficient database connections
-
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
-1. **Model Loading Failures**
-   - Check internet connection for model downloads
-   - Verify sufficient disk space
-   - Check Python package versions
-
-2. **arXiv API Errors**
-   - Verify internet connectivity
-   - Check arXiv service status
-   - Review rate limiting
-
-3. **Database Issues**
-   - Ensure write permissions
-   - Check disk space
-   - Verify SQLite installation
+| Issue | Solution |
+|-------|----------|
+| Model Loading Failures | Check internet connection and disk space |
+| arXiv API Errors | Verify connectivity and service status |
+| Database Issues | Check permissions and disk space |
 
 ### Debug Mode
-
-Enable debug mode for development:
-
 ```python
 socketio.run(app, debug=True, host='0.0.0.0', port=5000)
 ```
@@ -364,22 +243,23 @@ socketio.run(app, debug=True, host='0.0.0.0', port=5000)
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the **GPL-3.0 License** - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **arXiv**: For providing research paper access
-- **HuggingFace**: For transformer models and pipelines
-- **Flask**: For the web framework
-- **Socket.IO**: For real-time communication
+- **[arXiv](https://arxiv.org)** - Research paper access
+- **[HuggingFace](https://huggingface.co)** - Transformer models
+- **[Flask](https://flask.palletsprojects.com)** - Web framework
+- **[Socket.IO](https://socket.io)** - Real-time communication
 
 ## 📞 Support
 
-For issues and questions:
-1. Check the troubleshooting section
-2. Review existing issues
-3. Create a new issue with detailed information
+- Check the troubleshooting section
+- Review existing issues
+- Create a new issue with detailed information
 
 ---
 
 **Happy Researching! 🔬📚**
+
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-damndeepesh%2Fresearch--digest-blue?style=for-the-badge&logo=docker)](https://hub.docker.com/repository/docker/damndeepesh/research-digest/general)
